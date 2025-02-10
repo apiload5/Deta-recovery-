@@ -1,10 +1,10 @@
 [app]
 
 # Application title
-title = Ticno Data Recovery
+title = Whatsapp Recording 
 
 # Application package name (unique identifier)
-package.name = ticnodatarecovery
+package.name = whatsapp_vice_recording
 
 # Application domain (used for package name)
 package.domain = org.ticno
@@ -16,7 +16,7 @@ source.include_exts = py,png,jpg,kv,atlas
 version = 1.0.0
 
 # Application requirements (dependencies)
-requirements = python3,kivy==2.1.0,kivymd,recoverpy
+requirements = python3,kivy==2.3.0,kivymd,pyaudio,sounddevice
 
 # Primary application entry point
 source.include_patterns = assets/*,images/*,fonts/*
