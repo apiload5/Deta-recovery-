@@ -1,78 +1,59 @@
-[app]
+name: Build APK
 
-# Title of your application
-title = Ticno Data Recovery
+on:
+  push:
+    branches:
+      - main
 
-# Package name
-package.name = ticonorecovery
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-# Package domain
-package.domain = org.ticno
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-# Source code directory
-source.dir = .
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
 
-# Included file types
-source.include_exts = py,png,jpg,kv,atlas
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            git zip unzip openjdk-17-jdk \
+            python3-pip python3-setuptools python3-venv \
+            libffi-dev libssl-dev libjpeg-dev zlib1g-dev \
+            libstdc++6 libbz2-dev libreadline-dev libncurses5-dev
 
-# Version
-version = 1.0
+      - name: Install Buildozer and Cython
+        run: |
+          pip install --upgrade pip
+          pip install cython
+          pip install buildozer
 
-# Entry point of the app
-entrypoint = main.py
+      - name: Install Android SDK & Build Tools
+        run: |
+          mkdir -p $HOME/.buildozer/android/platform/android-sdk
+          cd $HOME/.buildozer/android/platform/android-sdk
+          wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip
+          unzip cmdline-tools.zip
+          mkdir -p cmdline-tools/latest
+          mv cmdline-tools/* cmdline-tools/latest/
+          yes | cmdline-tools/latest/bin/sdkmanager --sdk_root=$HOME/.buildozer/android/platform/android-sdk \
+            "platforms;android-30" \
+            "build-tools;30.0.3" \
+            "platform-tools" \
+            "tools"
 
-# Application requirements
-requirements = python3,kivy
+      - name: Build APK
+        run: |
+          buildozer android debug
 
-# Orientation of the app
-orientation = portrait
-
-# Fullscreen setting
-fullscreen = 1
-
-# Android Permissions
-android.permissions = READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE
-
-# Hide status bar
-android.hide_statusbar = 1
-
-# Minimum API level
-android.minapi = 21
-
-# Target API level
-android.api = 30
-
-# NDK version
-android.ndk = 23b
-
-# NDK API level
-android.ndk_api = 21
-
-# Private storage
-android.private_storage = True
-
-# Package type
-android.packaging = default
-
-# Optional: Add icon and presplash
-# icon.filename = data/icon.png
-# presplash.filename = data/presplash.png
-
-# Optional Java version
-android.gradle_dependencies = com.android.support:appcompat-v7:28.0.0
-
-[buildozer]
-
-# Log level
-log_level = 2
-
-# Warn if using root
-warn_on_root = 1
-
-# Build directory
-build_dir = ./build
-
-# Uncomment if you want to reuse the SDK/NDK location
-# android.sdk_path = /path/to/android/sdk
-# android.ndk_path = /path/to/android/ndk
-
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: TicnoDataRecovery.apk
+          path: bin/*.apk
+          
