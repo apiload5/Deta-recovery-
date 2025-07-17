@@ -1,135 +1,114 @@
 [app]
 
-# Application title
-title = Whatsapp Recording 
+# (str) Title of your application
+title = Ticno Data Recovery
 
-# Application package name (unique identifier)
-package.name = whatsapp_vice_recording
+# (str) Package name
+package.name = ticonorecovery
 
-# Application domain (used for package name)
+# (str) Package domain (unique reverse domain-style)
 package.domain = org.ticno
 
-# Source code directory
+# (str) Source code directory
+source.dir = .
+
+# (list) Source files to include (comma separated)
 source.include_exts = py,png,jpg,kv,atlas
 
-# Application version (major.minor.revision)
-version = 1.0.0
+# (str) Application versioning (method 1)
+version = 1.0
 
-# Application requirements (dependencies)
-requirements = python3,kivy==2.3.0,kivymd,pyaudio,sounddevice
+# (list) Application requirements
+requirements = python3,kivy
 
-# Primary application entry point
-source.include_patterns = assets/*,images/*,fonts/*
+# (str) Presplash of the application
+#presplash.filename = %(source.dir)s/data/presplash.png
 
-# Orientation (portrait or landscape)
+# (str) Icon of the application
+#icon.filename = %(source.dir)s/data/icon.png
+
+# (str) Supported orientation (portrait, landscape or all)
 orientation = portrait
 
-# Android permissions
-android.permissions = INTERNET,READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE
+# (bool) Indicate if the application should be fullscreen or not
+fullscreen = 1
 
-# Android API level
+# (bool) Hide the statusbar
+android.hide_statusbar = 1
+
+# (str) Supported Android API
 android.api = 30
 
-# Minimum Android SDK version
+# (int) Minimum API your APK will support
 android.minapi = 21
 
-# Target Android SDK version
+# (str) Android NDK version to use
 android.ndk = 23b
 
-# Android architecture (armeabi-v7a, arm64-v8a, x86, x86_64)
-android.arch = armeabi-v7a
+# (str) Android NDK API to use. This is the minimum API your app will support, it should usually match android.minapi.
+android.ndk_api = 21
 
-# Android app icon
-icon.filename = %(source.dir)s/assets/icon.png
+# (bool) Use --private data storage (True) or --dir public storage (False)
+android.private_storage = True
 
-# Presplash screen (optional)
-presplash.filename = %(source.dir)s/assets/presplash.png
-
-# Log level (debug, info, warning, error, critical)
+# (bool) Android logcat filters to use
 log_level = 2
 
-# Fullscreen mode (0 = disabled, 1 = enabled)
-fullscreen = 0
+# (list) Permissions
+android.permissions = READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE
 
-# Window style (0 = normal, 1 = borderless)
-window.style = 0
+# (str) Entry point of the application
+entrypoint = main.py
 
-# Preserve Python environment (0 = disabled, 1 = enabled)
-preserve_python_environment = 0
+# (str) Packaging method
+android.packaging = default
 
-# Debug mode (0 = disabled, 1 = enabled)
-debug = 1
+# (bool) Copy library instead of making a libpymodules.so
+copy_libs = 1
 
-# Build mode (debug or release)
-# release mode mein signing key aur password ki zarurat hogi
-# debug mode mein yeh zaruri nahi hai
-# mode = debug
+# (str) Path to build artifact storage, absolute or relative to spec file
+# build_dir = ./build
 
-# Signing key (release mode ke liye)
-# android.keystore = %(source.dir)s/keystore.jks
-# android.keystore.password = your_password
-# android.keyalias = your_alias
-# android.keyalias.password = your_alias_password
+# (str) Custom source folders for requirements
+# (Separate multiple paths with commas)
+# requirements.source = 
 
-# Buildozer log level (0 = minimal, 1 = verbose)
-log_level_buildozer = 1
+# (bool) Create a landscape version (useful for tablets)
+# landscape = False
 
-# Buildozer build directory
-buildozer.build_dir = .buildozer
+# (str) Command line to run after build (e.g. install)
+# postbuild = 
 
-# Buildozer bin directory
-buildozer.bin_dir = .bin
+# (str) Custom Java package name for your app
+# android.package = com.example.myapp
 
-# Buildozer log directory
-buildozer.log_dir = .logs
+[buildozer]
 
-# Buildozer cache directory
-buildozer.cache_dir = .cache
+# (str) Buildozer log level (0 = error only, 1 = normal, 2 = verbose, 3 = debug)
+log_level = 2
 
-# Buildozer dist directory
-buildozer.dist_dir = bin
+# (str) Path to build artifact storage, absolute or relative to spec file
+build_dir = ./build
 
-# Buildozer source directory
-buildozer.source_dir = .
+# (str) Path to Python-for-Android git clone (if empty, it will clone automatically)
+# p4a.source_dir = 
 
-# Buildozer spec file
-buildozer.spec_file = buildozer.spec
+# (str) Path to the folder containing android SDK and NDK tools
+# android.sdk_path = 
 
-# Buildozer force build (0 = disabled, 1 = enabled)
-buildozer.force_build = 0
+# (str) Path to the android NDK directory (if empty, it will be installed automatically)
+# android.ndk_path = 
 
-# Buildozer force clean build (0 = disabled, 1 = enabled)
-buildozer.force_clean_build = 0
+# (str) Path to the android SDK directory (if empty, it will be installed automatically)
+# android.sdk_path = 
 
-# Buildozer force rebuild (0 = disabled, 1 = enabled)
-buildozer.force_rebuild = 0
+# (str) Path to a custom version of Cython
+# cython_path = 
 
-# Buildozer force reinstall (0 = disabled, 1 = enabled)
-buildozer.force_reinstall = 0
+# (bool) Enable verbose output for every command
+warn_on_root = 1
 
-# Buildozer force recompile (0 = disabled, 1 = enabled)
-buildozer.force_recompile = 0
+# (str) Additional command line arguments to pass when invoking python-for-android
+# p4a.extra_args = 
 
-# Buildozer force redownload (0 = disabled, 1 = enabled)
-buildozer.force_redownload = 0
 
-# Buildozer force reextract (0 = disabled, 1 = enabled)
-buildozer.force_reextract = 0
-
-# Buildozer force repackage (0 = disabled, 1 = enabled)
-buildozer.force_repackage = 0
-
-# Buildozer force resign (0 = disabled, 1 = enabled)
-buildozer.force_resign = 0
-
-# Buildozer force rezip (0 = disabled, 1 = enabled)
-buildozer.force_rezip = 0
-
-# Buildozer force rezipalign (0 = disabled, 1 = enabled)
-buildozer.force_rezipalign = 0
-
-# Buildozer force rezipalign (0 = disabled, 1 = enabled)
-buildozer.force_rezipalign = 0
-
-# Buildozer force rezipalign (0 = disabled, 1 = enabled)
-buildozer.force_rezipalign = 0
