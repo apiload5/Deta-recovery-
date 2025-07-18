@@ -1,5 +1,4 @@
 [app]
-
 # Title of your application
 title = Ticno Data Recovery
 
@@ -31,7 +30,7 @@ orientation = portrait
 fullscreen = 1
 
 # Android Permissions
-android.permissions = READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE
+android.permissions = READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE,MANAGE_EXTERNAL_STORAGE
 
 # Hide status bar
 android.hide_statusbar = 1
@@ -54,15 +53,10 @@ android.private_storage = True
 # Package type
 android.packaging = default
 
-# Optional: Add icon and presplash
-# icon.filename = data/icon.png
-# presplash.filename = data/presplash.png
-
-# Optional Java version
-android.gradle_dependencies = com.android.support:appcompat-v7:28.0.0
+# Accept Android SDK license
+android.accept_sdk_license = True
 
 [buildozer]
-
 # Log level
 log_level = 2
 
@@ -71,8 +65,3 @@ warn_on_root = 1
 
 # Build directory
 build_dir = ./build
-
-# Uncomment if you want to reuse the SDK/NDK location
-# android.sdk_path = /path/to/android/sdk
-# android.ndk_path = /path/to/android/ndk
-
