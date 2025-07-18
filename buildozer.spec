@@ -40,10 +40,10 @@ android.hide_statusbar = 1
 android.minapi = 21
 
 # Target API level
-android.api = 30
+android.api = 33
 
 # NDK version
-android.ndk = 23b
+android.ndk = 25c
 
 # NDK API level
 android.ndk_api = 21
