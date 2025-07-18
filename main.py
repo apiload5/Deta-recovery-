@@ -9,19 +9,25 @@ class RecoveryApp(BoxLayout):
         super().__init__(orientation='vertical', **kwargs)
         self.label = Label(text="Press to scan deleted videos")
         self.add_widget(self.label)
+
         self.scan_btn = Button(text="Scan Videos")
         self.scan_btn.bind(on_press=self.scan_deleted_videos)
         self.add_widget(self.scan_btn)
 
     def scan_deleted_videos(self, instance):
         self.label.text = "Scanning..."
-        possible_paths = ["/sdcard/DCIM/.thumbnails", "/sdcard/Movies", "/sdcard/WhatsApp/Media/WhatsApp Video"]
+        possible_paths = [
+            "/sdcard/DCIM/.thumbnails",
+            "/sdcard/Movies",
+            "/sdcard/WhatsApp/Media/WhatsApp Video"
+        ]
         found = []
         for path in possible_paths:
             if os.path.exists(path):
                 for f in os.listdir(path):
-                    if f.endswith(".mp4") or f.endswith(".3gp"):
-                        found.append(f)
+                    if f.endswith((".mp4", ".3gp")):
+                        found.append(os.path.join(path, f))
+
         if found:
             self.label.text = f"Found {len(found)} videos."
         else:
@@ -33,4 +39,4 @@ class TicnoRecoveryApp(App):
 
 if __name__ == '__main__':
     TicnoRecoveryApp().run()
-    
+            
