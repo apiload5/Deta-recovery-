@@ -25,20 +25,6 @@ jobs:
           pip install --upgrade pip Cython
           pip install buildozer
 
-      - name: Set ANDROID_HOME
-        run: |
-          echo "ANDROID_HOME=/home/runner/.buildozer/android/platform/android-sdk" >> $GITHUB_ENV
-
-      - name: Accept Android SDK licenses
-        run: |
-          mkdir -p ~/.android
-          echo "count=0" > ~/.android/repositories.cfg
-          yes | ${ANDROID_HOME}/tools/bin/sdkmanager --licenses
-
-      - name: Install Android SDK Build-Tools
-        run: |
-          ${ANDROID_HOME}/tools/bin/sdkmanager "build-tools;36.0.0"
-
       - name: Build APK
         run: |
           buildozer android debug
