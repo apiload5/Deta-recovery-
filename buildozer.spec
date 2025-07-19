@@ -21,7 +21,7 @@ version = 1.0
 entrypoint = main.py
 
 # Application requirements
-requirements = python3,kivy==2.3.1,kivymd
+requirements = python3,kivy==2.3.0,kivymd
 
 # Orientation of the app
 orientation = portrait
