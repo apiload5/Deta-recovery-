@@ -1,0 +1,17 @@
+name: Unzip File
+
+on: [push]
+
+jobs:
+  unzip:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Install unzip
+        run: sudo apt-get install unzip -y
+
+      - name: Unzip file.zip
+        run: unzip file.zip -d extracted_folder
+        
