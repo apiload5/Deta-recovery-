@@ -1,17 +1,28 @@
-name: Unzip File
+name: Unzip ZIP File
 
-on: [push]
+on:
+  push:
+    branches:
+      - main   # Jab main branch pe push ho tab chale
 
 jobs:
-  unzip:
+  unzip-job:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
+      # 1. Checkout repo
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
+      # 2. Install unzip
       - name: Install unzip
-        run: sudo apt-get install unzip -y
+        run: sudo apt-get update && sudo apt-get install unzip -y
 
-      - name: Unzip file.zip
-        run: unzip file.zip -d extracted_folder
+      # 3. List all files to debug path issues
+      - name: List repository files
+        run: ls -R
+
+      # 4. Unzip file (CHANGE PATH IF NEEDED)
+      - name: Extract ZIP file
+        run: unzip your.zip -d extracted_folder
         
