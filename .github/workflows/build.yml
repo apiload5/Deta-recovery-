@@ -1,42 +1,40 @@
-name: Android CI Build APK (Kivy/Buildozer)on:push:branches: [ "main", "master" ]pull_request:branches: [ "main", "master" ]Yeh aapko manually run karne ki permission dega 'Actions' tab seworkflow_dispatch:jobs:build:# Use larger runner for heavy build processes like Buildozerruns-on: ubuntu-lateststeps:
-- name: 📦 Checkout Code
-  uses: actions/checkout@v4
+name: Android CI Build APK
 
-# 1. Setup Python Environment (Buildozer is a Python tool)
-- name: 🐍 Set up Python
-  uses: actions/setup-python@v5
-  with:
-    python-version: '3.10'
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
 
-# 2. Install Buildozer and System Dependencies
-- name: ⚙️ Install Buildozer and Build Requirements
-  run: |
-    # Install required Linux dependencies for Buildozer's toolchain
-    sudo apt-get update
-    sudo apt-get install -y build-essential libssl-dev zlib1g-dev libffi-dev pkg-config
-    # Install Buildozer Python package
-    pip install buildozer
-    
-# 3. Setup JDK 17 (Required for modern Android builds)
-# FIX: Using 'cache: none' to prevent the "No file matched" error.
-- name: ☕ Set up JDK 17
-  uses: actions/setup-java@v4
-  with:
-    java-version: '17'
-    distribution: 'temurin'
-    cache: 'none' 
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-# 4. Run the Buildozer Command
-- name: 📱 Run Buildozer to create APK
-  # We run the actual Kivy build command
-  # '--verbose' helps in debugging the log if it fails
-  run: buildozer android debug --verbose
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-# 5. Upload the resulting APK
-- name: ⬆️ Upload Debug APK (Artifact)
-  uses: actions/upload-artifact@v4
-  with:
-    name: app-debug-apk-for-download
-    # Buildozer outputs the APK into the 'bin' folder, NOT app/build/...
-    path: bin/*.apk
-    
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Grant execute permission to gradlew
+        run: chmod +x gradlew
+
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Upload Debug APK (Artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-apk-for-download
+          path: app/build/outputs/apk/debug/app-debug.apk
+          
