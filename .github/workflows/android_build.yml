@@ -1,0 +1,55 @@
+name: KivyMD Android Build & Debug
+
+on:
+  push:
+    branches:
+      - main  # Ya master, jahan aapka code push hota hai
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch: # Taake aap jab chahein, tab khud bhi chala sakein
+
+jobs:
+  build_apk:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python Dependencies for Buildozer
+        # Zaroori hai agar aapne koi custom dependencies daale hain
+        run: |
+          # Agar aapko KivyMD ke alawa koi aur library chahiye
+          pip install KivyMD 
+
+      - name: Build KivyMD APK with Buildozer
+        # Yeh step saare JDK, NDK, aur Python environment ke masle hal kar dega
+        uses: kivy/buildozer-action@v1
+        id: build
+        with:
+          # Aapki buildozer.spec file ke zariye build chalaega
+          command: buildozer android debug 
+
+      - name: Upload APK as Artifact
+        # Agar build successful ho jaye to APK ko GitHub par save kar de
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: KivyMD-APK-${{ github.sha }}
+          path: bin/*.apk
+
+      - name: Debug Build Error with Gemini (If Build Fails)
+        # Yeh step sirf tab chalaega jab build fail ho jaye
+        if: failure()
+        run: |
+          echo "Build failed. Starting Gemini diagnosis..."
+          # Buildozer ka log file nikalen
+          BUILD_LOG=$(cat .buildozer/android/platform/build-android/log.txt)
+          
+          # Python script ko run karen
+          python debug_script.py
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BUILD_LOG: .buildozer/android/platform/build-android/log.txt # Log file ka path
