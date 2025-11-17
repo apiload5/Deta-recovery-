@@ -1,0 +1,57 @@
+name: 1. Gemini API Key Check
+
+on:
+  workflow_dispatch: # Sirf dastoorii taur par chalaaya jaaye
+
+jobs:
+  check_api:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Gemini SDK
+        run: pip install google-genai
+
+      - name: Verify API Key and Model Access
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          echo "Starting Gemini connectivity check..."
+          
+          # Simple Python script to call Gemini API and check response
+          python - <<EOF
+import os
+from google import genai
+from google.genai.errors import APIError
+import sys
+
+API_KEY = os.getenv("GEMINI_API_KEY")
+
+if not API_KEY:
+    print("ERROR: GEMINI_API_KEY is not set in GitHub Secrets.")
+    sys.exit(1)
+
+try:
+    client = genai.Client(api_key=API_KEY)
+    
+    # Ek chota sa prompt bhej kar connectivity check karein
+    response = client.models.generate_content(
+        model='gemini-2.5-flash',
+        contents="Say 'API Check Successful'",
+    )
+    
+    if "successful" in response.text.lower():
+        print("✅ SUCCESS: Gemini API Key is valid and model responded correctly!")
+    else:
+        print(f"⚠️ WARNING: API Key is valid, but unexpected response: {response.text}")
+
+except APIError as e:
+    print(f"❌ FAILURE: Gemini API Key failed the call. Check your key, quotas, and billing. Error: {e}")
+    sys.exit(1)
+except Exception as e:
+    print(f"❌ FAILURE: An unexpected error occurred: {e}")
+    sys.exit(1)
+EOF
