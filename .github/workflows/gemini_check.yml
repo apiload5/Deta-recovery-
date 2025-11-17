@@ -18,10 +18,10 @@ jobs:
       - name: Verify API Key and Model Access
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: |
-          echo "Starting Gemini connectivity check..."
+        # > (Folds scalar) istemaal karen taake syntax masla hal ho
+        run: >
+          echo "Starting Gemini connectivity check...";
           
-          # Simple Python script to call Gemini API and check response
           python - <<EOF
 import os
 from google import genai
