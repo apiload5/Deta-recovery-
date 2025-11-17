@@ -18,19 +18,17 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Python Dependencies
-        # Buildozer, Gemini SDK, aur GitHub interface ke liye zaroori libraries
         run: |
           pip install KivyMD buildozer google-genai PyGithub
 
       - name: Build KivyMD APK with Buildozer
-        # Naya aur Darust Action Path istemaal karen
         id: build
+        # Darust Action Path
         uses: ndk-stuff/buildozer-action@v1
         with:
           command: buildozer android debug 
 
       - name: Upload APK as Artifact
-        # Agar build successful ho jaye to APK ko save karen
         uses: actions/upload-artifact@v4
         if: success()
         with:
@@ -39,39 +37,49 @@ jobs:
           retention-days: 7
 
       - name: Debug Build Error with Gemini (If Build Fails)
-        # Yeh step sirf tab chalaega jab build fail ho jaye
         if: failure()
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Buildozer ka default log path
+          BUILD_LOG_PATH: .buildozer/android/platform/build-armeabi-v7a/dists/*/build/logs/log.txt 
         run: |
           echo "Build failed. Starting Gemini diagnosis..."
           
-          # Buildozer ka log path (aksar is format mein hota hai)
-          BUILD_LOG_PATH=".buildozer/android/platform/build-armeabi-v7a/dists/*/build/logs/log.txt"
-          
-          # Python Script jo log padh kar Gemini ko bhejegi
-          python - <<EOF
+          # Python script ko run karen (yeh ab ek single run block mein shamil hai)
+          python <<EOF
 import os
 import sys
 from github import Github
 from google import genai
 from google.genai.errors import APIError
 
+# Environment Variables
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 REPO_NAME = os.environ.get('GITHUB_REPOSITORY')
+BUILD_LOG_PATH = os.getenv("BUILD_LOG_PATH")
 
 def get_log_content(path):
     try:
-        with open(path, 'r', encoding='utf-8', errors='ignore') as f:
+        # Buildozer ke complex log paths ko handle karne ke liye glob istemal karein
+        import glob
+        files = glob.glob(path, recursive=True)
+        if not files:
+            return None
+        
+        with open(files[0], 'r', encoding='utf-8', errors='ignore') as f:
             lines = f.readlines()
-        return "".join(lines[-200:]) # Akhri 200 lines for efficiency
+        return "".join(lines[-200:]) 
     except Exception as e:
+        print(f"Error reading log file: {e}")
         return None
 
 def run_gemini_diagnosis(log_content):
     prompt = f"""
     Aap KivyMD/Buildozer ke expert hain. Neeche di gayi Android build log ki buniyad par, 
     1. Error ki asal wajah kya hai? 
-    2. Ise theek karne ka sabse behtareen aur wazeh hal kya hai? (Buildozer ya code change)
+    2. Ise theek karne ka sabse behtareen aur wazeh hal kya hai? 
 
     BUILD LOG (Last 200 lines):
     {log_content}
@@ -89,10 +97,13 @@ def run_gemini_diagnosis(log_content):
         return f"An unknown error occurred: {e}"
 
 if __name__ == "__main__":
+    if not all([GEMINI_API_KEY, GITHUB_TOKEN, BUILD_LOG_PATH]):
+        sys.exit(1)
+
     log_content = get_log_content(BUILD_LOG_PATH)
     
     if log_content is None:
-        sys.exit(0) # Agar log file hi nahi mili to fail na karen
+        sys.exit(0)
 
     diagnosis = run_gemini_diagnosis(log_content)
     
@@ -103,11 +114,7 @@ if __name__ == "__main__":
         issue_body = f"## 🧠 Gemini Build Diagnosis\n\n**Build Failed:** The workflow failed to create the APK.\n\n---\n\n{diagnosis}\n\n---\n\n*Yeh diagnosis Gemini AI ne build log ki buniyad par kiya hai.*"
         
         repo.create_issue(title=issue_title, body=issue_body)
-        print("Diagnosis posted to GitHub Issues.")
     except Exception as e:
         print(f"GitHub Issue posting failed: {e}")
 
 EOF
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
