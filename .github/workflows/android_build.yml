@@ -3,11 +3,11 @@ name: KivyMD Android Build & Debug
 on:
   push:
     branches:
-      - main  # Ya master, jahan aapka code push hota hai
+      - main
   pull_request:
     branches:
       - main
-  workflow_dispatch: # Taake aap jab chahein, tab khud bhi chala sakein
+  workflow_dispatch:
 
 jobs:
   build_apk:
@@ -18,38 +18,35 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Python Dependencies for Buildozer
-        # Zaroori hai agar aapne koi custom dependencies daale hain
+        # KivyMD aur Buildozer ki zaroorat ke mutabiq libraries install karen
         run: |
-          # Agar aapko KivyMD ke alawa koi aur library chahiye
-          pip install KivyMD 
+          pip install KivyMD buildozer google-genai PyGithub
 
       - name: Build KivyMD APK with Buildozer
-        # Yeh step saare JDK, NDK, aur Python environment ke masle hal kar dega
-        uses: kivy/buildozer-action@v1
+        # Kivy ke complex environment ko handle karta hai
         id: build
+        uses: kivy/buildozer-action@v1
         with:
-          # Aapki buildozer.spec file ke zariye build chalaega
           command: buildozer android debug 
 
       - name: Upload APK as Artifact
-        # Agar build successful ho jaye to APK ko GitHub par save kar de
+        # Agar build successful ho jaye to APK ko save karen
         uses: actions/upload-artifact@v4
         if: success()
         with:
           name: KivyMD-APK-${{ github.sha }}
           path: bin/*.apk
+          retention-days: 7
 
       - name: Debug Build Error with Gemini (If Build Fails)
         # Yeh step sirf tab chalaega jab build fail ho jaye
         if: failure()
         run: |
           echo "Build failed. Starting Gemini diagnosis..."
-          # Buildozer ka log file nikalen
-          BUILD_LOG=$(cat .buildozer/android/platform/build-android/log.txt)
-          
-          # Python script ko run karen
           python debug_script.py
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BUILD_LOG: .buildozer/android/platform/build-android/log.txt # Log file ka path
+          # Buildozer ka default log path
+          BUILD_LOG_PATH: .buildozer/android/platform/build-armeabi-v7a/dists/*/build/logs/log.txt 
+          # Note: Buildozer ka log path environment ke hisaab se thoda badal sakta hai
