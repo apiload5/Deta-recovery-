@@ -1,4 +1,4 @@
-name: KivyMD Android Build & Debug
+name: KivyMD Android Build with Gemini Debug
 
 on:
   push:
@@ -17,15 +17,15 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Python Dependencies for Buildozer
-        # KivyMD aur Buildozer ki zaroorat ke mutabiq libraries install karen
+      - name: Install Python Dependencies
+        # Buildozer, Gemini SDK, aur GitHub interface ke liye zaroori libraries
         run: |
           pip install KivyMD buildozer google-genai PyGithub
 
       - name: Build KivyMD APK with Buildozer
-        # Kivy ke complex environment ko handle karta hai
+        # Naya aur Darust Action Path istemaal karen
         id: build
-        uses: kivy/buildozer-action@v1
+        uses: ndk-stuff/buildozer-action@v1
         with:
           command: buildozer android debug 
 
@@ -43,10 +43,71 @@ jobs:
         if: failure()
         run: |
           echo "Build failed. Starting Gemini diagnosis..."
-          python debug_script.py
+          
+          # Buildozer ka log path (aksar is format mein hota hai)
+          BUILD_LOG_PATH=".buildozer/android/platform/build-armeabi-v7a/dists/*/build/logs/log.txt"
+          
+          # Python Script jo log padh kar Gemini ko bhejegi
+          python - <<EOF
+import os
+import sys
+from github import Github
+from google import genai
+from google.genai.errors import APIError
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+REPO_NAME = os.environ.get('GITHUB_REPOSITORY')
+
+def get_log_content(path):
+    try:
+        with open(path, 'r', encoding='utf-8', errors='ignore') as f:
+            lines = f.readlines()
+        return "".join(lines[-200:]) # Akhri 200 lines for efficiency
+    except Exception as e:
+        return None
+
+def run_gemini_diagnosis(log_content):
+    prompt = f"""
+    Aap KivyMD/Buildozer ke expert hain. Neeche di gayi Android build log ki buniyad par, 
+    1. Error ki asal wajah kya hai? 
+    2. Ise theek karne ka sabse behtareen aur wazeh hal kya hai? (Buildozer ya code change)
+
+    BUILD LOG (Last 200 lines):
+    {log_content}
+    """
+    try:
+        client = genai.Client(api_key=GEMINI_API_KEY)
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt,
+        )
+        return response.text
+    except APIError as e:
+        return f"Gemini API Call Failed (Check API Key/Billing): {e}"
+    except Exception as e:
+        return f"An unknown error occurred: {e}"
+
+if __name__ == "__main__":
+    log_content = get_log_content(BUILD_LOG_PATH)
+    
+    if log_content is None:
+        sys.exit(0) # Agar log file hi nahi mili to fail na karen
+
+    diagnosis = run_gemini_diagnosis(log_content)
+    
+    try:
+        g = Github(GITHUB_TOKEN)
+        repo = g.get_repo(REPO_NAME)
+        issue_title = f"🤖 KivyMD Build Failure Diagnosis by Gemini (Commit: {os.environ.get('GITHUB_SHA')[:7]})"
+        issue_body = f"## 🧠 Gemini Build Diagnosis\n\n**Build Failed:** The workflow failed to create the APK.\n\n---\n\n{diagnosis}\n\n---\n\n*Yeh diagnosis Gemini AI ne build log ki buniyad par kiya hai.*"
+        
+        repo.create_issue(title=issue_title, body=issue_body)
+        print("Diagnosis posted to GitHub Issues.")
+    except Exception as e:
+        print(f"GitHub Issue posting failed: {e}")
+
+EOF
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Buildozer ka default log path
-          BUILD_LOG_PATH: .buildozer/android/platform/build-armeabi-v7a/dists/*/build/logs/log.txt 
-          # Note: Buildozer ka log path environment ke hisaab se thoda badal sakta hai
